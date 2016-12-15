@@ -77,8 +77,8 @@ x <- t(ww)
 library(gplots)
 
 
-mydist=function(c) {dist(c,method="euclidian")}
-myclust=function(c) {hclust(c,method="average")}
+mydist=function(c) {as.dist(1-cor(t(c)))}
+myclust=function(c) {hclust(c,method="complete")}
 
 
 pdf("../Output/Fig1/Fig1a-HumanHeatmap.pdf")
