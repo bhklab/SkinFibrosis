@@ -81,7 +81,7 @@ mydist=function(c) {as.dist(1-cor(t(c)))}
 myclust=function(c) {hclust(c,method="complete")}
 
 
-pdf("../Output/Fig1/Fig1a-HumanHeatmap.pdf")
+pdf("../Output/Fig1a-HumanHeatmap.pdf")
 par(mar=c(1,3,1,2)+0.1,mgp=c(3,1,0))
 color.map <- function(x) { if (x=="R") "#c51b8a" else "#31a354" }
 classColors <- unlist(lapply(colnames(x), color.map))

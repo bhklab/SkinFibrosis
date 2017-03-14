@@ -13,7 +13,7 @@ querySigKEGG()
 
 
 ###### run pharmacogenomics analysis
-load("CMAP_gene_signatures.RData")
+load("../Data/CMAP_gene_signatures.RData")
 
 ## 1- for the "diffExpAnalysis" query signature
 library(PharmacoGx)
@@ -57,7 +57,7 @@ stopCluster(cl)
 rownames(res) <- c("Connectivity", "P Value")
 res <- t(res)
 res <- res[order(res[,1], decreasing=T),]
-save(list = ls(all.names = TRUE), file = paste("../Output/qSig-KEGG-diffExpAnalysis.RData", sep=""))
+save(list = ls(all.names = TRUE), file = paste("../Output/qSig-KEGG.RData", sep=""))
 
 
 ## plot results
