@@ -1,14 +1,13 @@
 
 ## Files to run the scripts 
 
-- Drug-target (benchmark) from CHEMBL and CTRP
-- Sensitivity measurements (drugs x cell lines) from CTRPv2 and NCI-60
-- Transcriptomic data from the LINCS database http://lincs.hms.harvard.edu/ created using PharmacoGx package https://cran.r-project.org/web/packages/PharmacoGx/index.html
+- CMAP perturbation object: 
+
 
 ## Run the R scripts 
 
-* main-ctrpv-lincs.R and 
-* main-nci60-lincs.R
+* 
+*
 
 
 # Set up the software environment
