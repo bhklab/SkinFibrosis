@@ -6,8 +6,9 @@
 
 ## Run the R scripts 
 
-* 
-*
+* Fig1a-humanHeatmap.R
+* Fig1b-temporalDataClustering&Overrep.R
+* Fig2a-PharmaCogenomics.R
 
 
 # Set up the software environment
