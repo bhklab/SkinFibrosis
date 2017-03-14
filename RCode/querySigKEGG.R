@@ -40,5 +40,5 @@ qdn <- rep(-1, length(entrzdn))
 names(qdn) <- unlist(lapply(entrzdn,function(x) paste("geneid.",x, sep='')))
 
 qq <- c(qup,qdn)
-save(qq, file=paste("../Output/q-", sourceName, "-feb9.RData", sep=""))
+save(qq, file=paste("../Output/q-", sourceName, ".RData", sep=""))
 }
