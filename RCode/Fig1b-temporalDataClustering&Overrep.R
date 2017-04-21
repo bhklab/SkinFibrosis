@@ -7,6 +7,8 @@
 
 rm(list=ls())
 
+
+
 library(piano)
 library(xlsx)
 library(WriteXLS)
@@ -27,19 +29,22 @@ edesign[,"Time"] <- rep( c(0,6,20),each=3)
 edesign[,"Replicates"] <- rep( c(1:3),each=3) 
 edesign[,"Radiated"] <- c(rep(1,9))
 
-exprs <- as.matrix(read.table("../Data/genes.fpkm_table", header=TRUE, sep = "\t", row.names = 1, as.is=TRUE))
+exprs <- read.table("../Data/genes.fpkm_table", header=TRUE, sep = ",")
+rownames(exprs) <- exprs[,1]
+exprs <- exprs[,-1]
+
 
 ## re-order according to the design matrix rownames
 exprs3 <- matrix(nrow=dim(exprs)[1], ncol=9)
-exprs3[,1] <- exprs[,15] ### N  --> N_0
-exprs3[,2] <- exprs[,13] # N_1
-exprs3[,3] <- exprs[,14] # N_2
+exprs3[,1] <- exprs[,12] ### N  --> N_1
+exprs3[,2] <- exprs[,10] # N_2
+exprs3[,3] <- exprs[,11] # N_3
 #
-exprs3[,4] <- exprs[,8] ## S --> S_0
-exprs3[,5] <- exprs[,9] #S_1
-exprs3[,6] <- exprs[,7] #S_2
+exprs3[,4] <- exprs[,8] ##  F_6W_1
+exprs3[,5] <- exprs[,7] # F_6W_2
+exprs3[,6] <- exprs[,9] #F_6W_3
 #
-exprs3[,7:9] <- exprs[,1:3] ## L_0, L_1, L_2
+exprs3[,7:9] <- exprs[,1:3] ## F_20W_1, F_20W_1, F_20W_2
 # 
 colnames(exprs3) <- rownames(edesign) 
 rownames(exprs3) <- rownames(exprs)
@@ -50,8 +55,8 @@ exprs3 <- exprs3[apply(exprs3[,-1], 1, function(x) !all(x==0)),]
 
 ## only include genes in the union of diffrerentially expressed genes 
 d <- read.table("../Data/gene_exp.diff")
-d2 <- subset(d, d$V5=='L' & d$V6 =='S' & d$V11 !="-nan") ## NOTE
-d22 <- subset(d, d$V5=='N' & d$V6 =='S' & d$V11 !="-nan") ## NOTE
+d2 <- subset(d, d$V5=='L' & d$V6 =='S' & d$V11 !="-nan") ## NOTE: L and S denote F_20W and F_6W groups, repectively 
+d22 <- subset(d, d$V5=='N' & d$V6 =='S' & d$V11 !="-nan") ## NOTE 
 
 ## remove KRT
 indices <- gdata::startsWith(as.character(d2$V1), "Krt")
