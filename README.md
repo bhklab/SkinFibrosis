@@ -9,6 +9,7 @@
 * Fig1a-humanHeatmap.R
 * Fig1b-temporalDataClustering&Overrep.R
 * Fig2a-PharmaCogenomics.R
+* Fig1d-clustering.R
 
 
 # Set up the software environment
