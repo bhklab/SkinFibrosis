@@ -7,8 +7,6 @@
 
 rm(list=ls())
 
-
-
 library(piano)
 library(xlsx)
 library(WriteXLS)
@@ -25,14 +23,11 @@ rownames(edesign) <- c("Radiated_0d_1", "Radiated_0d_2", "Radiated_0d_3" ,
 
 
 colnames(edesign) <- c("Time", "Replicates", "Radiated")
-edesign[,"Time"] <- rep( c(0,6,20),each=3)
+edesign[,"Time"] <- rep(c(0,6,20),each=3)
 edesign[,"Replicates"] <- rep( c(1:3),each=3) 
 edesign[,"Radiated"] <- c(rep(1,9))
 
-exprs <- read.table("../Data/genes.fpkm_table", header=TRUE, sep = ",")
-rownames(exprs) <- exprs[,1]
-exprs <- exprs[,-1]
-
+exprs <- as.matrix(read.table("../Data/genes.fpkm_table", header=TRUE, sep = ",", row.names = 1, as.is=TRUE))
 
 ## re-order according to the design matrix rownames
 exprs3 <- matrix(nrow=dim(exprs)[1], ncol=9)
@@ -40,11 +35,11 @@ exprs3[,1] <- exprs[,12] ### N  --> N_1
 exprs3[,2] <- exprs[,10] # N_2
 exprs3[,3] <- exprs[,11] # N_3
 #
-exprs3[,4] <- exprs[,8] ##  F_6W_1
-exprs3[,5] <- exprs[,7] # F_6W_2
+exprs3[,4] <- exprs[,8] ## F_6W_1
+exprs3[,5] <- exprs[,7] #F_6W_2
 exprs3[,6] <- exprs[,9] #F_6W_3
 #
-exprs3[,7:9] <- exprs[,1:3] ## F_20W_1, F_20W_1, F_20W_2
+exprs3[,7:9] <- exprs[,1:3] ## F_20W_1, F_20W_2, F_20W_3
 # 
 colnames(exprs3) <- rownames(edesign) 
 rownames(exprs3) <- rownames(exprs)
@@ -55,8 +50,8 @@ exprs3 <- exprs3[apply(exprs3[,-1], 1, function(x) !all(x==0)),]
 
 ## only include genes in the union of diffrerentially expressed genes 
 d <- read.table("../Data/gene_exp.diff")
-d2 <- subset(d, d$V5=='L' & d$V6 =='S' & d$V11 !="-nan") ## NOTE: L and S denote F_20W and F_6W groups, repectively 
-d22 <- subset(d, d$V5=='N' & d$V6 =='S' & d$V11 !="-nan") ## NOTE 
+d2 <- subset(d, d$V5=='L' & d$V6 =='S' & d$V11 !="-nan") ## NOTE
+d22 <- subset(d, d$V5=='N' & d$V6 =='S' & d$V11 !="-nan") ## NOTE
 
 ## remove KRT
 indices <- gdata::startsWith(as.character(d2$V1), "Krt")
@@ -94,32 +89,31 @@ dim(exprs3)
 #########
 
 ## apply maSigPro pipeline
-pdf("../Output/clusteringResults-KRTFiltered-fibrosisOnly.pdf")
-x <- see.genes(exprs3, edesign=edesign, newX11 =  FALSE)
+pdf("../Output/Fig1b-temporalClusteringResults-KRTFiltered-fibrosisOnly.pdf")
+x <- see.genes(exprs3, edesign=edesign, newX11 =  FALSE, k=3)
 dev.off()  
 ## 
 cluster1 <- exprs3[x$cut==1,]
 cluster2 <- exprs3[x$cut==2,]
 cluster3 <- exprs3[x$cut==3,]
-cluster4 <- exprs3[x$cut==4,] 
-cluster5 <- exprs3[x$cut==5,]
-cluster6 <- exprs3[x$cut==6,]
-cluster7 <- exprs3[x$cut==7,]
-cluster8 <- exprs3[x$cut==8,]
-cluster9 <- exprs3[x$cut==9,]
-save(list = ls(all.names = TRUE), file = "../Output/clusteringResults-KRTFiltered-fibrosisOnly.RData")
+
+save(list = ls(all.names = TRUE), file = "../Output/Fig1b-temporalClusteringResults-KRTFiltered-fibrosisOnly.RData")
+
 
 
 ## STEP 2: OVER-REP. ANALYSIS
 ## pathways have been downloaded from consensusPAthDB website
-paths <- read.xlsx("../Data/MouseReactome.xlsx",1)
 
 ## subset to kegg only
-src=c("KEGG", "MouseCyc")
-
+src = c("KEGG", "Reactome")
 
 for (source in src){ 
-paths <- paths[paths$source==source,]
+if (source == "KEGG") { 
+  paths <- read.xlsx("../Data/genePathways-allKEGG&MouseCyc.xlsx",1)
+  paths <- paths[paths$source==source,]
+} else if (source == "Reactome") {
+  paths <- read.xlsx("../Data/MouseReactome.xlsx",1)
+}
 
 paths$pathway <- as.character(paths$pathway)
 paths$hgnc_symbol_ids <- toupper(as.character(paths$hgnc_symbol_ids))
@@ -135,11 +129,9 @@ d <- read.table("../Data/gene_exp.diff")
 d2 <- subset(d, d$V5=='L' & d$V6 =='S' & d$V11 !="-nan") ## NOTE
 d22 <- subset(d, d$V5=='N' & d$V6 =='S' & d$V11 !="-nan") ## NOTE
 
-clusters= c(cluster2, cluster4, cluster1, cluster5, cluster3, cluster7, cluster8, cluster6, cluster9)
-no = c(2,4,1,5,3,7,8,6,9)
-i=1
-for (clst in clusters) {
-### OVER REP for clusters ...
+
+### OVER REP for cluster1 ...
+clst = cluster1
 universe <- toupper(intersect(d2$V1, d22$V1))
 genes <- toupper(rownames(clst))
 significant <- rep(1, length(universe))
@@ -147,16 +139,38 @@ significant[which(universe %in% genes)] <- 0
 res <- runGSAhyper(genes=universe, significant,  gsc=a, adjMethod="fdr")
 result <- res$resTab[order(res$resTab[, "p-value"]),]
 Sys.setlocale('LC_ALL','C') 
-write.xlsx2(result, file= paste("../Output/cluster", no[i], source,"-fig1b.xlsx", sep=""))
-i=i+1
-}
+write.xlsx2(result, file= paste("../Output/cluster1-", source,"-fig1b.xlsx", sep=""))
+
+### OVER REP for cluster2 ...
+clst = cluster2
+universe <- toupper(intersect(d2$V1, d22$V1))
+genes <- toupper(rownames(clst))
+significant <- rep(1, length(universe))
+significant[which(universe %in% genes)] <- 0
+res <- runGSAhyper(genes=universe, significant,  gsc=a, adjMethod="fdr")
+result <- res$resTab[order(res$resTab[, "p-value"]),]
+Sys.setlocale('LC_ALL','C') 
+write.xlsx2(result, file= paste("../Output/cluster2-", source,"-fig1b.xlsx", sep=""))
+
+### OVER REP for cluster2 ...
+clst = cluster3
+universe <- toupper(intersect(d2$V1, d22$V1))
+genes <- toupper(rownames(clst))
+significant <- rep(1, length(universe))
+significant[which(universe %in% genes)] <- 0
+res <- runGSAhyper(genes=universe, significant,  gsc=a, adjMethod="fdr")
+result <- res$resTab[order(res$resTab[, "p-value"]),]
+Sys.setlocale('LC_ALL','C') 
+write.xlsx2(result, file= paste("../Output/cluster3-", source,"-fig1b.xlsx", sep=""))
 
 }
+
+
 
 ####### 
 ## generating the heatmap
 load("../Output/clusteringResults-KRTFiltered-fibrosisOnly.RData")
-total <- rbind(cluster2, cluster4, cluster1, cluster5, cluster3, cluster7, cluster8, cluster6, cluster9)
+total <- rbind(cluster1, cluster2, cluster3)
 
 pdf("../Output/Fig1B.pdf")
 par(mar=c(2,2,2,1)+0.1,mgp=c(3,1,0))
